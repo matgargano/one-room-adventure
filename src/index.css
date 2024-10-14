@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@font-face {
+  font-family: "TRS-80 CoCoNut";
+  src: url("./fonts/TRS80CoCoNut.woff2") format("woff2"),
+    url("./fonts/TRS80CoCoNut.woff") format("woff");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+body {
+  @apply bg-main font-main text-black;
+}
+
+.main-container {
+  @apply text-2xl font-extrabold h-[80vh] overflow-scroll my-20 flex flex-col container border-none outline-none focus:outline-none focus:border-none;
+}
+
+.button {
+  @apply bg-black text-main px-5;
+}
+
+.trs-cursor {
+  @apply inline-block w-[30px] h-full bg-black;
+  animation: colorFlip 1s infinite;
+}
+
+@keyframes colorFlip {
+  0% {
+    background-color: #ff0000;
+  } /* Red */
+  16.6% {
+    background-color: #ff7f00;
+  } /* Orange */
+  33.3% {
+    background-color: #ffff00;
+  } /* Yellow */
+  50% {
+    background-color: #00ff00;
+  } /* Green */
+  66.6% {
+    background-color: #0000ff;
+  } /* Blue */
+  83.3% {
+    background-color: #4b0082;
+  } /* Indigo */
+  100% {
+    background-color: #8b00ff;
+  } /* Violet */
+}
