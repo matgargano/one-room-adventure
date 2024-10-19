@@ -1,20 +1,22 @@
 import TextAdventureParser from "./utilities/parser";
 import { useState, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { RootState } from "./store";
-import getStatus from "./getStatus";
+import { RootState, store } from "./store";
 import { Actions } from "./const/actions";
 import { addToInventory } from "./features/inventory/inventorySlice";
-import { setWindow } from "./features/inventory/informationSlice";
+import { setWindow } from "./features/window/windowSlice";
+import { INVENTORY, WindowState } from "./const/windows";
+import { addLog } from "./features/log/logSlice";
 
 function App() {
   const [input, setInput] = useState("");
-  const [response, setResponse] = useState<string[]>([]);
-  const [menuActive, setMenuActive] = useState<null | "inventory" | "location">(
-    null
-  );
+  const [menuActive, setMenuActive] = useState<WindowState>(null);
   const inputRef = useRef(null);
   const dispatch = useDispatch();
+  const {
+    flag: { blindfolded, handsTied },
+  } = store.getState();
+
   useEffect(() => {
     if (inputRef.current) {
       (inputRef.current as HTMLInputElement).focus();
@@ -22,25 +24,22 @@ function App() {
   }, []);
 
   const location = useSelector((state: RootState) => state.location);
-  const inventory = useSelector((state: RootState) => state.inventory);
-  const inventoryState = { items: inventory.items };
-  const state = { location, inventory };
+  const { window } = useSelector((state: RootState) => state.information);
+  const { items } = useSelector((state: RootState) => state.log);
 
-  const setMenuActiveDecorated = (menu: "inventory" | null) => {
+  const setMenuActiveDecorated = (menu: WindowState) => {
     if (menu === menuActive) {
       return dispatch(setWindow(null));
     }
     dispatch(setWindow(menu));
   };
 
-  const { name, description } = getStatus(state);
-
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const parser = new TextAdventureParser();
-    const { message, action } = parser.parseCommand(input, state);
-    setResponse([...response, message]);
+    const { message, action } = parser.parseCommand(input);
+    dispatch(addLog(message));
     if (action) {
       const { verb, item } = action;
       if (!item || typeof item !== "string") {
@@ -52,44 +51,49 @@ function App() {
           break;
       }
     }
-    getStatus(state);
     setInput("");
   };
 
   return (
     <>
-      <div className="sticky top-0 left-0 flex gap-5 relative">
+      <div className="relative sticky left-0 top-0 flex gap-5 bg-main">
         <strong
-          onClick={() => setMenuActiveDecorated("inventory")}
+          onClick={() => setMenuActiveDecorated(INVENTORY)}
           role="button"
-          className={`button ${menuActive === "inventory" ? "underline" : ""}`}
+          className={`button ${menuActive === INVENTORY ? "underline" : ""}`}
         >
           Inventory
         </strong>
+        <strong className="capitalize">
+          Facing{" "}
+          {!blindfolded ? (
+            <u className="animate__animated animate__heartBeat">
+              {location.direction}
+            </u>
+          ) : (
+            <u>????</u>
+          )}
+        </strong>
       </div>
 
-      <div className="mt-10">
-        <strong>Location</strong>: {name}
-      </div>
-      <div>
-        {description.map((d) => (
-          <p key={d}>{d}</p>
-        ))}
-        {response.map((r) => (
-          <p key={r}>{r}</p>
+      <div className="mt-10 max-h-[calc(100%-10px)] overflow-y-auto">
+        <p>OK</p>
+        {items.map((i, index) => (
+          <p key={`${index}-${i}`}>{i}</p>
         ))}
       </div>
       <div className="mt-auto">
         <form className="flex" onSubmit={handleSubmit}>
-          <div className="w-full border-4 border-black flex">
+          <div className="flex w-full border-4 border-black">
             <div className="trs-cursor grow-0"></div>
             <input
               placeholder="What do you do?"
               ref={inputRef}
               type="text"
               onChange={(e) => setInput(e.target.value)}
-              className="bg-transparent pl-2 pr-5 grow"
+              className="grow bg-transparent pl-2 pr-5"
               value={input}
+              name="input"
             />
           </div>
           <button className="button grow-0" type="submit">

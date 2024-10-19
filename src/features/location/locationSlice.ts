@@ -1,12 +1,14 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
+import { directionType } from "../../types/directionType";
 import { Locations } from "../../const/locations";
-
 export interface LocationState {
-  room: keyof typeof Locations;
+  direction: directionType;
+  room: Locations;
 }
 
 const initialState: LocationState = {
+  direction: "north",
   room: "main",
 };
 
@@ -14,16 +16,16 @@ export const locationSlice = createSlice({
   name: "location",
   initialState,
   reducers: {
-    // incrementByAmount: (
-    //   state: LocationState,
-    //   action: PayloadAction<number>
-    // ) => {
-    //   state.value += action.payload;
-    // },
+    setDirection: (
+      state: LocationState,
+      action: PayloadAction<directionType>
+    ) => {
+      state.direction = action.payload;
+    },
   },
 });
 
 // Action creators are generated for each case reducer function
-export const {} = locationSlice.actions;
+export const { setDirection } = locationSlice.actions;
 
 export default locationSlice.reducer;

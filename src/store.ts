@@ -1,12 +1,17 @@
 import { configureStore } from "@reduxjs/toolkit";
 import inventoryReducer from "./features/inventory/inventorySlice";
-import locationReducer from "./features/inventory/locationSlice";
-import informationReducer from "./features/inventory/informationSlice";
+import locationReducer from "./features/location/locationSlice";
+import informationReducer from "./features/window/windowSlice";
+import logReducer from "./features/log/logSlice";
+import flagReducer from "./features/flag/flagSlice";
+
 export const store = configureStore({
   reducer: {
     inventory: inventoryReducer,
     location: locationReducer,
     information: informationReducer,
+    log: logReducer,
+    flag: flagReducer,
   },
 });
 

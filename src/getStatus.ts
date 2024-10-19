@@ -1,7 +1,6 @@
-import { Items } from "./const/items";
 import { MAIN } from "./const/locations";
 import { InventoryState } from "./features/inventory/inventorySlice";
-import { LocationState } from "./features/inventory/locationSlice";
+import { LocationState } from "./features/location/locationSlice";
 
 export default function getStatus(state: {
   location: LocationState;
@@ -12,7 +11,7 @@ export default function getStatus(state: {
     [MAIN]: {
       name: "Main",
       getDescription: () => {
-        if (inventory.items.includes(Items.NAIL)) {
+        if (inventory.items.includes(NAIL)) {
           return [
             "I am In the Middle Of A Room",
             "I am sitting on a chair",
