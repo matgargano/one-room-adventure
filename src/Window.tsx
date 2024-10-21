@@ -7,7 +7,11 @@ const Window = () => {
   const dispatch = useDispatch();
   const window = useSelector((state: RootState) => state.information.window);
   const color = useSelector((state: RootState) => state.information.color);
-  const inventory = useSelector((state: RootState) => state.inventory.items);
+  const inventory = useSelector((state: RootState) =>
+    Object.keys(state.inventory.items).filter(
+      (item: string) => state.inventory.items[item].location === INVENTORY
+    )
+  );
   const title = useSelector((state: RootState) => state.information.title);
   const close = () => {
     dispatch(setWindow(null));
@@ -24,7 +28,7 @@ const Window = () => {
             <div className="">No items in inventory</div>
           ) : (
             <ul className="ml-5 list-inside list-disc">
-              {inventory.map((item) => (
+              {inventory.map((item: string) => (
                 <li key={item} className="list-disc">
                   {item}
                 </li>

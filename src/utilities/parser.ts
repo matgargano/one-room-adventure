@@ -12,6 +12,7 @@ import { FLOOR } from "../const/directions";
 import { setDirection } from "../features/location/locationSlice";
 import {
   DirectionType,
+  DirectionTypeWithFloor,
   VALID_DIRECTIONS_WITH_FLOOR,
 } from "../types/directionType";
 import { INVENTORY } from "../const/windows";
@@ -34,7 +35,8 @@ export default class TextAdventureParser {
   private verb: string | undefined;
   private directObject: string | undefined;
   private indirectObject: string | undefined;
-  private preposition: string | undefined;
+
+  // private preposition: string | undefined;
   private preflightCheckResult: preflightCheckResult | undefined;
 
   constructor() {
@@ -91,15 +93,14 @@ export default class TextAdventureParser {
    * @returns The entered command and its arguments
    */
   private parseCommandWords(inputText: string) {
-    const { verb, directObject, preposition, indirectObject } =
-      parseCommand(inputText);
+    const { verb, directObject, indirectObject } = parseCommand(inputText);
 
     if (verb) {
       this.verb = verb ? normalizeVerb(verb) : undefined;
       this.directObject = directObject
         ? normalizeItem(directObject)
         : undefined;
-      this.preposition = preposition ? normalizeItem(preposition) : undefined;
+      // this.preposition = preposition ? normalizeItem(preposition) : undefined;
       this.indirectObject = indirectObject
         ? normalizeItem(indirectObject)
         : undefined;
@@ -276,9 +277,9 @@ export default class TextAdventureParser {
     return this.handleLookAtItem();
   }
 
-  private hasAccessToItem(item: string): boolean {
-    return this.canReach(item) || this.inInventory(item);
-  }
+  // private hasAccessToItem(item: string): boolean {
+  //   return this.canReach(item) || this.inInventory(item);
+  // }
 
   private handleLookAtItem(): CommandResult {
     if (!this.directObject || !this.directObject.length) {
@@ -315,7 +316,9 @@ export default class TextAdventureParser {
         message: `What are you trying to look at?`,
       };
     }
-    const itemsInDirection = this.getItemsInLocation(this.directObject);
+    const itemsInDirection = this.getItemsInLocation(
+      this.directObject as DirectionTypeWithFloor
+    );
     let directionPrefix = "at the";
     if (this.directObject.toLowerCase() !== FLOOR) {
       store.dispatch(setDirection(this.directObject as DirectionType));
@@ -473,10 +476,10 @@ export default class TextAdventureParser {
       .map(([key]) => key);
   }
 
-  private isOpen(item: string) {
-    const { inventory } = store.getState();
-    return inventory?.items[item]?.isOpen;
-  }
+  // private isOpen(item: string) {
+  //   const { inventory } = store.getState();
+  //   return inventory?.items[item]?.isOpen;
+  // }
 
   private canPickUp(item: string) {
     const { inventory } = store.getState();

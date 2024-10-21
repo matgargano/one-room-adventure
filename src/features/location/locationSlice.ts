@@ -1,9 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
-import { directionType } from "../../types/directionType";
+import { DirectionType } from "../../types/directionType";
 import { Locations } from "../../const/locations";
 export interface LocationState {
-  direction: directionType;
+  direction: DirectionType;
   room: Locations;
 }
 
@@ -18,7 +18,7 @@ export const locationSlice = createSlice({
   reducers: {
     setDirection: (
       state: LocationState,
-      action: PayloadAction<directionType>
+      action: PayloadAction<DirectionType>
     ) => {
       state.direction = action.payload;
     },
