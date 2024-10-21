@@ -1,25 +1,40 @@
-import { createSlice } from "@reduxjs/toolkit";
-import type { PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import LogItem from "../../types/LogItem";
 
 export interface LogStateInterface {
-  items: string[];
+  items: (LogItem | 0)[];
 }
 
 const initialState: LogStateInterface = {
-  items: [],
+  items: [
+    {
+      input: "",
+      message: [
+        "I am In the Middle Of A Room",
+        "I am sitting on a chair",
+        "I am blindfolded",
+      ],
+    },
+  ],
 };
 
 export const logSlice = createSlice({
   name: "log",
   initialState,
   reducers: {
-    addLog: (state: LogStateInterface, action: PayloadAction<string>) => {
-      state.items.push(action.payload);
+    addLog: (state: LogStateInterface, action: PayloadAction<LogItem>) => {
+      state.items.push({
+        input: action.payload.input,
+        message: action.payload.message,
+      });
+    },
+    carriageReturn: (state: LogStateInterface) => {
+      state.items.push(0);
     },
   },
 });
 
 // Action creators are generated for each case reducer function
-export const { addLog } = logSlice.actions;
+export const { addLog, carriageReturn } = logSlice.actions;
 
 export default logSlice.reducer;

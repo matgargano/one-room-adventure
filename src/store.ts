@@ -1,5 +1,5 @@
 import { configureStore } from "@reduxjs/toolkit";
-import inventoryReducer from "./features/inventory/inventorySlice";
+import inventoryReducer from "./features/item/itemSlice";
 import locationReducer from "./features/location/locationSlice";
 import informationReducer from "./features/window/windowSlice";
 import logReducer from "./features/log/logSlice";

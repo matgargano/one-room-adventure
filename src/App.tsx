@@ -1,14 +1,18 @@
 import TextAdventureParser from "./utilities/parser";
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState, store } from "./store";
 import { Actions } from "./const/actions";
-import { addToInventory } from "./features/inventory/inventorySlice";
+import { addToInventory } from "./features/item/itemSlice";
 import { setWindow } from "./features/window/windowSlice";
 import { INVENTORY, WindowState } from "./const/windows";
-import { addLog } from "./features/log/logSlice";
+import { addLog, carriageReturn } from "./features/log/logSlice";
+import getLastItemsAfterClear from "./utilities/getLastItemsAfterClear";
+import LogItem from "./types/LogItem";
 
 function App() {
+  const scrollContainerRef = useRef(null);
+
   const [input, setInput] = useState("");
   const [menuActive, setMenuActive] = useState<WindowState>(null);
   const inputRef = useRef(null);
@@ -27,6 +31,16 @@ function App() {
   const { window } = useSelector((state: RootState) => state.information);
   const { items } = useSelector((state: RootState) => state.log);
 
+  useEffect(() => {
+    // Scroll to the bottom of the container
+    const element = scrollContainerRef.current;
+    if (element) {
+      (element as HTMLElement).scrollTop = (
+        element as HTMLElement
+      ).scrollHeight;
+    }
+  }, [items]);
+
   const setMenuActiveDecorated = (menu: WindowState) => {
     if (menu === menuActive) {
       return dispatch(setWindow(null));
@@ -38,19 +52,10 @@ function App() {
     e.preventDefault();
 
     const parser = new TextAdventureParser();
-    const { message, action } = parser.parseCommand(input);
-    dispatch(addLog(message));
-    if (action) {
-      const { verb, item } = action;
-      if (!item || typeof item !== "string") {
-        return;
-      }
-      switch (verb) {
-        case Actions.TAKE:
-          dispatch(addToInventory({ item }));
-          break;
-      }
-    }
+    const { message } = parser.parseCommand(input);
+
+    dispatch(addLog({ input, message }));
+
     setInput("");
   };
 
@@ -76,18 +81,37 @@ function App() {
         </strong>
       </div>
 
-      <div className="mt-10 max-h-[calc(100%-10px)] overflow-y-auto">
-        <p>OK</p>
-        {items.map((i, index) => (
-          <p key={`${index}-${i}`}>{i}</p>
-        ))}
+      <div
+        ref={scrollContainerRef}
+        className="mt-10 h-[calc(100%-280px)] overflow-y-auto"
+      >
+        {getLastItemsAfterClear(items).map((item: LogItem, index) => {
+          const { input, message } = item;
+          let realMessage: string[] = [];
+          if (typeof message === "string") {
+            realMessage = [message];
+          } else {
+            realMessage = message;
+          }
+
+          return (
+            <div key={`${index}-${item}`}>
+              {index > 0 && (
+                <p className="font-bold">&rarr; What should I do? {input}</p>
+              )}
+              {realMessage.map((message, index) => (
+                <p key={`${index}-${message}`}>{message}</p>
+              ))}
+            </div>
+          );
+        })}
       </div>
       <div className="mt-auto">
         <form className="flex" onSubmit={handleSubmit}>
           <div className="flex w-full border-4 border-black">
             <div className="trs-cursor grow-0"></div>
             <input
-              placeholder="What do you do?"
+              placeholder="What should I do?"
               ref={inputRef}
               type="text"
               onChange={(e) => setInput(e.target.value)}

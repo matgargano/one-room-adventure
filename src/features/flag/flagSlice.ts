@@ -4,11 +4,13 @@ import type { PayloadAction } from "@reduxjs/toolkit";
 export interface FlagState {
   handsTied: boolean;
   blindfolded: boolean;
+  wireCutInCage: boolean;
 }
 
 const initialState: FlagState = {
   handsTied: true,
   blindfolded: true,
+  wireCutInCage: false,
 };
 
 export const flagSlice = createSlice({

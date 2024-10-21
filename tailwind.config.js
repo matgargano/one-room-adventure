@@ -7,7 +7,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        main: ["TRS-80 CoCoNut", "sans-serif"],
+        coconut: ["TRS-80 CoCoNut", "sans-serif"],
+        start: ["Start"],
+        vt323: ["VT323", "sans-serif"],
       },
       colors: {
         main: "#47ff01",

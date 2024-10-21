@@ -11,7 +11,7 @@
 }
 
 body {
-  @apply bg-main font-main text-black;
+  @apply bg-main font-coconut text-black;
 }
 
 .main-container {
@@ -19,7 +19,7 @@ body {
 }
 
 .button {
-  @apply bg-black text-main px-5;
+  @apply bg-black px-5 text-main;
 }
 
 .trs-cursor {
