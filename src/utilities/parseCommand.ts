@@ -42,7 +42,7 @@ function parseCommand(sentence: string) {
 
   // Define regex patterns for extracting the rest of the command
   const directObjectPattern = /^(\w+)(?:\s+(on|to|at|in|with|for))?/; // Direct object and optional preposition
-  const prepositionPattern = /\b(on|to|at|in|with|for)\b/; // Match common prepositions
+  // const prepositionPattern = /\b(on|to|at|in|with|for)\b/; // Match common prepositions
   const indirectObjectPattern = /\b(on|to|at|in|with|for)\s+(\w+)/; // Match the word after a preposition
 
   // Extract the direct object

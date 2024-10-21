@@ -2,11 +2,9 @@ import TextAdventureParser from "./utilities/parser";
 import React, { useState, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState, store } from "./store";
-import { Actions } from "./const/actions";
-import { addToInventory } from "./features/item/itemSlice";
 import { setWindow } from "./features/window/windowSlice";
 import { INVENTORY, WindowState } from "./const/windows";
-import { addLog, carriageReturn } from "./features/log/logSlice";
+import { addLog } from "./features/log/logSlice";
 import getLastItemsAfterClear from "./utilities/getLastItemsAfterClear";
 import LogItem from "./types/LogItem";
 
@@ -14,11 +12,11 @@ function App() {
   const scrollContainerRef = useRef(null);
 
   const [input, setInput] = useState("");
-  const [menuActive, setMenuActive] = useState<WindowState>(null);
+  const [menuActive] = useState<WindowState>(null);
   const inputRef = useRef(null);
   const dispatch = useDispatch();
   const {
-    flag: { blindfolded, handsTied },
+    flag: { blindfolded },
   } = store.getState();
 
   useEffect(() => {
@@ -28,7 +26,7 @@ function App() {
   }, []);
 
   const location = useSelector((state: RootState) => state.location);
-  const { window } = useSelector((state: RootState) => state.information);
+
   const { items } = useSelector((state: RootState) => state.log);
 
   useEffect(() => {

@@ -1,6 +1,6 @@
 // TypeScript version of the text adventure parser
 import { Actions } from "../const/actions";
-import items, { BLINDFOLD, CHAIR, NAIL, ROPE } from "../const/items";
+import { BLINDFOLD, CHAIR, NAIL, ROPE } from "../const/items";
 import { store } from "../store"; // Import your Redux store
 import { carriageReturn } from "../features/log/logSlice";
 import { set } from "../features/flag/flagSlice";
@@ -8,15 +8,14 @@ import { parseCommand } from "./parseCommand";
 import { normalizeItem } from "../const/items";
 import { normalizeVerb } from "../const/verbs";
 import { drop, pickUp, updateCanOpen } from "../features/item/itemSlice";
-import { FLOOR, normalizeDirection } from "../const/directions";
+import { FLOOR } from "../const/directions";
 import { setDirection } from "../features/location/locationSlice";
 import {
   DirectionType,
-  VALID_DIRECTIONS,
   VALID_DIRECTIONS_WITH_FLOOR,
 } from "../types/directionType";
 import { INVENTORY } from "../const/windows";
-import { outputWithArticle } from "./outputWithArticle";
+
 type CommandResult = {
   message: string | string[];
 };
