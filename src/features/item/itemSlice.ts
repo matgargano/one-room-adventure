@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
-import ITEMS, { InventoryItem } from "../../const/items";
+import ITEMS, { InventoryItem, ItemType } from "../../const/items";
 import { FLOOR } from "../../const/directions";
 
 const INVENTORY = "inventory";
@@ -15,7 +15,7 @@ export const inventorySlice = createSlice({
       state: { items: Record<string, InventoryItem> },
       action: PayloadAction<{ item: string }>
     ) => {
-      const item = ITEMS[action.payload.item];
+      const item = ITEMS[action.payload.item as ItemType];
       if (item) {
         state.items[action.payload.item].location = INVENTORY;
       }
@@ -36,6 +36,7 @@ export const inventorySlice = createSlice({
       state: { items: Record<string, InventoryItem> },
       action: PayloadAction<{ item: string; value: boolean }>
     ) => {
+      debugger;
       state.items[action.payload.item].isOpen = action.payload.value;
     },
 

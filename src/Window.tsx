@@ -2,14 +2,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { setWindow } from "./features/window/windowSlice";
 import { RootState } from "./store";
 import { INTRO, INVENTORY } from "./const/windows";
-
+import type { ItemType } from "./const/items";
 const Window = () => {
   const dispatch = useDispatch();
   const window = useSelector((state: RootState) => state.information.window);
   const color = useSelector((state: RootState) => state.information.color);
   const inventory = useSelector((state: RootState) =>
     Object.keys(state.inventory.items).filter(
-      (item: string) => state.inventory.items[item].location === INVENTORY
+      (item) => state.inventory.items[item as ItemType].location === INVENTORY
     )
   );
   const title = useSelector((state: RootState) => state.information.title);

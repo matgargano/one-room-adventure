@@ -1,6 +1,7 @@
 import ITEMS from "../const/items";
+import type { ItemType } from "../const/items";
 
-export const outputWithArticle = (item: string) => {
+export const outputWithArticle = (item: ItemType) => {
   if (ITEMS[item].article) {
     return `${ITEMS[item].article} ${item}`;
   }

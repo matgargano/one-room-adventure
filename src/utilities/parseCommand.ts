@@ -40,26 +40,27 @@ function parseCommand(sentence: string) {
     }
   }
 
-  // Define regex patterns for extracting the rest of the command
-  const directObjectPattern = /^(\w+)(?:\s+(on|to|at|in|with|for))?/; // Direct object and optional preposition
-  // const prepositionPattern = /\b(on|to|at|in|with|for)\b/; // Match common prepositions
-  const indirectObjectPattern = /\b(on|to|at|in|with|for)\s+(\w+)/; // Match the word after a preposition
+  // Define prepositions
+  const prepositions = ["on", "to", "at", "in", "with", "for"];
+  const prepositionPattern = new RegExp(
+    `\\b(${prepositions.join("|")})\\b`,
+    "i"
+  );
 
-  // Extract the direct object
-  const directObjectMatch = restOfSentence.match(directObjectPattern);
-  let directObject = directObjectMatch ? directObjectMatch[1] : null;
-
-  // Extract preposition
-  const preposition =
-    directObjectMatch && directObjectMatch[2] ? directObjectMatch[2] : null;
-
-  // Extract indirect object if preposition exists
+  let directObject = null;
+  let preposition = null;
   let indirectObject = null;
-  if (preposition) {
-    const indirectObjectMatch = restOfSentence.match(indirectObjectPattern);
-    if (indirectObjectMatch && indirectObjectMatch[2]) {
-      indirectObject = indirectObjectMatch[2];
-    }
+
+  const prepositionMatch = restOfSentence.match(prepositionPattern);
+  if (prepositionMatch) {
+    preposition = prepositionMatch[1];
+    const prepositionIndex = restOfSentence.indexOf(preposition);
+    directObject = restOfSentence.substring(0, prepositionIndex).trim() || null;
+    indirectObject =
+      restOfSentence.substring(prepositionIndex + preposition.length).trim() ||
+      null;
+  } else {
+    directObject = restOfSentence.trim() || null;
   }
 
   // Special case for LOOK command

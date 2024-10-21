@@ -1,13 +1,18 @@
 // TypeScript version of the text adventure parser
 import { Actions } from "../const/actions";
-import { BLINDFOLD, CHAIR, NAIL, ROPE } from "../const/items";
+import { BLINDFOLD, CHAIR, CLOSED, ItemType, NAIL, ROPE } from "../const/items";
 import { store } from "../store"; // Import your Redux store
 import { carriageReturn } from "../features/log/logSlice";
 import { set } from "../features/flag/flagSlice";
 import { parseCommand } from "./parseCommand";
 import { normalizeItem } from "../const/items";
 import { normalizeVerb } from "../const/verbs";
-import { drop, pickUp, updateCanOpen } from "../features/item/itemSlice";
+import {
+  drop,
+  pickUp,
+  updateCanOpen,
+  updateIsOpen,
+} from "../features/item/itemSlice";
 import { FLOOR } from "../const/directions";
 import { setDirection } from "../features/location/locationSlice";
 import {
@@ -65,9 +70,11 @@ export default class TextAdventureParser {
     this.handleInventory = this.handleInventory.bind(this);
     this.handleDrop = this.handleDrop.bind(this);
     this.handleDump = this.handleDump.bind(this);
+    this.handleBreak = this.handleBreak.bind(this);
 
     // Define some common commands and their associated actions
     this.commands = {
+      break: this.handleBreak,
       feel: this.handleFeel,
       get: this.handleTake,
       touch: this.handleTouch,
@@ -153,9 +160,34 @@ export default class TextAdventureParser {
         result: { message: "You can't do that, you're blindfolded." },
       };
     }
+
+    if (
+      !this.isDirection(this.directObject) &&
+      !this.itemExists(this.directObject)
+    ) {
+      return {
+        canContinue: false,
+        result: { message: `I don't see any ${this.directObject} here.` },
+      };
+    }
+    if (
+      this.indirectObject &&
+      !this.isDirection(this.indirectObject) &&
+      !this.itemExists(this.indirectObject)
+    ) {
+      return {
+        canContinue: false,
+        result: { message: `I don't see any ${this.indirectObject} here.` },
+      };
+    }
+
     return {
       canContinue: true,
     };
+  }
+
+  private isDirection(item: string): boolean {
+    return VALID_DIRECTIONS_WITH_FLOOR.includes(item as DirectionType);
   }
 
   /**
@@ -168,6 +200,10 @@ export default class TextAdventureParser {
 
     if (["inventory", "i"].includes(inputText.toLowerCase())) {
       return this.handleInventory();
+    }
+    if (inputText.trim().toLowerCase() === "look") {
+      const { location } = store.getState();
+      return this.parseCommand(`look ${location.direction}`);
     }
 
     const wordCount = inputText.split(" ").length;
@@ -294,17 +330,20 @@ export default class TextAdventureParser {
     }
 
     const { location } = store.getState();
+
+    const { location: itemLocation } = this.recursivelyGetItemLocation(
+      this.directObject as ItemType | DirectionType
+    );
     if (
-      location.direction !== this.recursivelyGetItemLocation(this.directObject)
+      location.direction !== itemLocation &&
+      !this.inInventory(this.directObject)
     ) {
       return {
         message: `You can't reach the ${this.directObject}.`,
       };
     }
 
-    const description = this.getDescription(this.directObject || "")
-      ? this.getDescription(this.directObject || "")
-      : `It looks like your average everyday ${this.directObject}.`;
+    const description = this.getDescription(this.directObject as ItemType);
     return {
       message: `You look at the ${this.directObject}. ${description}`,
     };
@@ -356,7 +395,7 @@ export default class TextAdventureParser {
         message: `You don't have the ${this.directObject} try picking it up first. You may have to find it first!`,
       };
     }
-    if (!this.canReach(this.directObject)) {
+    if (!this.canReach(this.directObject as ItemType | DirectionType)) {
       return {
         message: `You can't reach the ${this.directObject}.`,
       };
@@ -377,7 +416,9 @@ export default class TextAdventureParser {
 
       store.dispatch(updateCanOpen({ item: this.indirectObject, value: true }));
       return {
-        message: `${inventory?.items?.[this.indirectObject]?.canOpenResponse}`,
+        message: `${
+          inventory?.items?.[this.indirectObject as ItemType]?.canOpenResponse
+        }`,
       };
     }
 
@@ -389,7 +430,7 @@ export default class TextAdventureParser {
   private requiresToOpen(item: string): string | undefined {
     const { inventory } = store.getState();
 
-    return inventory?.items?.[item]?.requiresOpen;
+    return inventory?.items?.[item as ItemType]?.requiresOpen;
   }
 
   private handleTalk(): CommandResult {
@@ -416,7 +457,7 @@ export default class TextAdventureParser {
         message: `You already have the ${this.directObject} in your inventory.`,
       };
     }
-    if (!this.canReach(this.directObject)) {
+    if (!this.canReach(this.directObject as ItemType | DirectionType)) {
       return {
         message: `You can't reach the ${this.directObject}.`,
       };
@@ -424,7 +465,7 @@ export default class TextAdventureParser {
     if (!this.canPickUp(this.directObject)) {
       return {
         message: `You can't pick up the ${this.directObject}. ${
-          inventory?.items[this.directObject].cannotPickUpReason
+          inventory?.items[this.directObject as ItemType].cannotPickUpReason
         }`,
       };
     }
@@ -436,40 +477,96 @@ export default class TextAdventureParser {
 
   private itemExists(item: string) {
     const { inventory } = store.getState();
-    return inventory?.items[item];
+    return inventory?.items[item as ItemType];
   }
 
   private inInventory(item: string) {
     const { inventory } = store.getState();
-    return inventory?.items[item].location === INVENTORY;
+    return inventory?.items[item as ItemType].location === INVENTORY;
   }
 
   private canOpen(item: string) {
     const { inventory } = store.getState();
-    return inventory?.items[item]?.canOpen;
+    return inventory?.items[item as ItemType]?.canOpen;
   }
 
-  private getDescription(item: string) {
+  private getDescription(item: ItemType): string {
+    let output = "";
+
     const { inventory } = store.getState();
-    return inventory?.items[item]?.description || "";
+    const description = inventory?.items[item as ItemType]?.description;
+    if (Array.isArray(description)) {
+      description.forEach((desc) => {
+        if (Array.isArray(desc?.is)) {
+          if (desc.is.includes(CLOSED) && !inventory?.items[item].isOpen) {
+            output += desc.description;
+          }
+        }
+        if (
+          output.length === 0 &&
+          desc.has?.every((has) =>
+            this.locationHasItem(
+              item as ItemType | DirectionTypeWithFloor,
+              has as ItemType | DirectionTypeWithFloor
+            )
+          )
+        ) {
+          output += desc.description;
+        }
+      });
+      return output;
+    }
+    if (output.length) {
+      return output;
+    }
+    if (typeof description === "string") {
+      return description;
+    }
+    return `It looks like your average everyday ${item}.`;
+  }
+
+  private locationHasItem(
+    location: DirectionType | typeof FLOOR | ItemType,
+    item: string
+  ) {
+    const itemsInLocation = this.getItemsInLocation(location);
+    return itemsInLocation.includes(item);
   }
 
   private recursivelyGetItemLocation(
-    item: string
-  ): DirectionType | typeof FLOOR | typeof INVENTORY {
+    item: ItemType | DirectionType,
+    isOpen?: boolean
+  ): {
+    location: DirectionType | typeof FLOOR | typeof INVENTORY;
+    isOpen: boolean | undefined;
+  } {
     const { inventory } = store.getState();
-    const location = inventory?.items[item]?.location || "";
+    const location = inventory?.items[item as ItemType]?.location || "";
+
+    if (typeof inventory?.items[item as ItemType]?.isOpen === "boolean") {
+      isOpen =
+        isOpen === undefined
+          ? inventory.items[item as ItemType].isOpen
+          : isOpen && inventory.items[item as ItemType].isOpen;
+    }
+
     if (
       [INVENTORY, ...VALID_DIRECTIONS_WITH_FLOOR].includes(
         location as DirectionType
       )
     ) {
-      return location as DirectionType;
+      return { location: location as DirectionType, isOpen };
     }
-    return this.recursivelyGetItemLocation(location);
+
+    return this.recursivelyGetItemLocation(
+      location as ItemType | DirectionType,
+      isOpen
+    );
   }
 
-  private getItemsInLocation(location: DirectionType | typeof FLOOR) {
+  private getItemsInLocation(
+    location: DirectionType | typeof FLOOR | ItemType
+  ) {
     const { inventory } = store.getState();
     return Object.entries(inventory.items)
       .filter(([, item]) => item.location === location)
@@ -482,19 +579,24 @@ export default class TextAdventureParser {
   // }
 
   private canPickUp(item: string) {
-    const { inventory } = store.getState();
-    return inventory?.items[item].canPickUp;
+    const { isOpen } = this.recursivelyGetItemLocation(item as ItemType);
+    return isOpen;
   }
 
-  private canReach(item: string): boolean {
+  private canReach(item: ItemType | DirectionType): boolean {
     const { location } = store.getState();
 
-    const itemLocation = this.recursivelyGetItemLocation(item);
-
+    const { location: itemLocation, isOpen: openValue } =
+      this.recursivelyGetItemLocation(item as ItemType | DirectionType);
+    const canPickUp = this.canPickUp(item as ItemType | DirectionType);
+    const isOpen =
+      (typeof openValue === "boolean" && openValue === true) ||
+      undefined === openValue;
     return (
-      this.inInventory(item) ||
-      itemLocation === location.direction ||
-      itemLocation === FLOOR
+      (canPickUp || isOpen) &&
+      (this.inInventory(item as ItemType | DirectionType) ||
+        itemLocation === location.direction ||
+        itemLocation === FLOOR)
     );
   }
 
@@ -503,15 +605,24 @@ export default class TextAdventureParser {
       return { message: "What are you trying to open?" };
     }
     const { items } = store.getState().inventory;
-    if (!items[this.directObject].canOpen) {
+
+    if (items[this.directObject as ItemType].isOpen) {
+      return {
+        message: `The ${this.directObject} is already open.`,
+      };
+    }
+
+    if (!items[this.directObject as ItemType].canOpen) {
       return {
         message: `You can't open the ${this.directObject}. ${
-          items[this.directObject].cannotOpenReason
-            ? items[this.directObject].cannotOpenReason
+          items[this.directObject as ItemType].cannotOpenReason
+            ? items[this.directObject as ItemType].cannotOpenReason
             : ""
         }`,
       };
     }
+    store.dispatch(updateIsOpen({ item: this.directObject, value: true }));
+
     return {
       message: `You open the ${this.directObject}.`,
     };
@@ -526,12 +637,36 @@ export default class TextAdventureParser {
     };
   }
 
+  private indirectRequired(
+    verb: string,
+    preposition?: string
+  ): {
+    canContinue: boolean;
+    message?: string;
+  } {
+    if (!this.directObject) {
+      return {
+        canContinue: false,
+        message: `${verb}${preposition ? ` ${preposition} ` : " on "} what?`,
+      };
+    }
+    if (!this.indirectObject || !this.indirectObject.length) {
+      return {
+        canContinue: false,
+        message: `${verb}${preposition ? ` ${preposition} ` : " on "} what?`,
+      };
+    }
+    return { canContinue: true };
+  }
+
   private handleRub(): CommandResult {
     if (!this.directObject || !this.directObject.length) {
       return { message: "What are you trying to rub?" };
     }
-    if (!this.indirectObject || !this.indirectObject.length) {
-      return { message: `Rub ${this.directObject} on what?` };
+
+    const { canContinue, message } = this.indirectRequired("rub");
+    if (!canContinue) {
+      return { message: message || "On what?" };
     }
 
     const { blindfolded, handsTied } = store.getState().flag;
@@ -616,6 +751,43 @@ export default class TextAdventureParser {
     }
 
     return { match: 0 };
+  }
+
+  private handleBreak(): CommandResult {
+    const { canContinue, message } = this.indirectRequired("break", "with");
+    if (!canContinue) {
+      return { message: message || "On what?" };
+    }
+
+    if (!this.indirectObject || !this.indirectObject.length) {
+      return {
+        message: `You can't break the ${this.directObject} with the ${this.indirectObject}.`,
+      };
+    }
+
+    if (!this.canReach(this.directObject as ItemType | DirectionType)) {
+      return { message: `You can't reach the ${this.directObject}.` };
+    }
+
+    const { inventory } = store.getState();
+    if (
+      typeof this.indirectObject === "string" &&
+      inventory.items[this.directObject as ItemType]?.canBreak?.every(
+        (item) => {
+          const normalizedItem = normalizeItem(item as unknown as string);
+          return this.inInventory(normalizedItem);
+        }
+      )
+    ) {
+      return {
+        message: `You break the ${this.directObject} with the ${this.indirectObject}.`,
+      };
+    } else {
+      return {
+        message: `You can't break the ${this.directObject} with the ${this.indirectObject}.`,
+      };
+    }
+    return { message: `You break the ${this.directObject}.` };
   }
 
   // private commandActual(command: string): string {

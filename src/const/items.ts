@@ -4,7 +4,7 @@ export const RADIO = "radio";
 export const SEAT = "seat";
 export const BLINDFOLD = "blindfold";
 export const ROPE = "rope";
-export const STRING = "string";
+
 export const NAIL = "nail";
 export const WINDOW = "window";
 export const PILLOW = "pillow";
@@ -28,11 +28,47 @@ export const FLOWERPOT = "flowerpot";
 export const SWITCH = "switch";
 export const DOOR = "door";
 export const GLASS = "glass";
-
+export const CROWBAR = "crowbar";
+export const CORD = "cord";
 import { NORTH, SOUTH, EAST, WEST, FLOOR } from "./directions";
 
+export const CLOSED = "closed";
+
+export type ItemType =
+  | typeof CHAIR
+  | typeof CROWBAR
+  | typeof DESK
+  | typeof RADIO
+  | typeof SEAT
+  | typeof BLINDFOLD
+  | typeof ROPE
+  | typeof RUG
+  | typeof SEAT
+  | typeof NAIL
+  | typeof WINDOW
+  | typeof PILLOW
+  | typeof OPENER
+  | typeof PLIERS
+  | typeof HAMMER
+  | typeof HANGER
+  | typeof DOVE
+  | typeof FURNITURE
+  | typeof BOOK
+  | typeof PICTURE
+  | typeof VAULT
+  | typeof CAGE
+  | typeof TOOLBOX
+  | typeof COUCH
+  | typeof STOVE
+  | typeof COAT
+  | typeof COATRACK
+  | typeof CORD
+  | typeof SWITCH
+  | typeof DOOR
+  | typeof FLOWERPOT;
+
 type InventoryItem = {
-  synonyms: string[];
+  synonyms: (ItemType | string)[];
   canPickUp: boolean;
   cannotPickUpReason?: string;
   location?: string;
@@ -41,14 +77,22 @@ type InventoryItem = {
   cannotOpenReason?: string;
   canMove?: boolean;
   isOpen?: boolean;
-  description?: string;
+  canBreak?: ItemType[];
+  description?:
+    | string
+    | {
+        is?: string[];
+        has?: string[];
+        description: string;
+      }[];
   article?: string;
   requiresOpen?: string;
   howToOpen?: string | string[];
   canOpenResponse?: string;
+  descriptionOpened?: string;
 };
 
-const ITEMS: Record<string, InventoryItem> = {
+const ITEMS: Record<ItemType, InventoryItem> = {
   [CHAIR]: {
     synonyms: [CHAIR, SEAT],
     canPickUp: false,
@@ -73,10 +117,18 @@ const ITEMS: Record<string, InventoryItem> = {
     synonyms: [TOOLBOX],
     canPickUp: true,
     location: EAST,
+    isOpen: false,
     canOpen: false,
     requiresOpen: OPENER,
     canOpenResponse: `You are able to unlock the toolbox with the ${OPENER}.`,
     cannotOpenReason: "It's rusted shut.",
+    descriptionOpened:
+      "The toolbox has a pair of pliers, a hammer and a crowbar.",
+  },
+  [CROWBAR]: {
+    synonyms: [CROWBAR],
+    canPickUp: true,
+    location: TOOLBOX,
   },
   [CAGE]: {
     synonyms: [CAGE, "birdcage", "bird cage"],
@@ -92,17 +144,52 @@ const ITEMS: Record<string, InventoryItem> = {
     cannotPickUpReason: "It's bolted to the floor.",
     location: EAST,
     isOpen: true,
-    description: "You see a can opener on it.",
+    description: [
+      {
+        has: [PILLOW],
+        description: "You see some pillows on it.",
+      },
+      {
+        has: [OPENER],
+        description: "You see a can opener on it.",
+      },
+    ],
   },
-  [STOVE]: {
-    synonyms: [STOVE],
+  [SEAT]: {
+    synonyms: [SEAT],
     canPickUp: false,
     cannotPickUpReason: "It's bolted to the floor.",
     location: EAST,
   },
+  [STOVE]: {
+    synonyms: [STOVE],
+    canPickUp: false,
+    canOpen: true,
+    isOpen: false,
+    cannotPickUpReason: "It's bolted to the floor.",
+    description: [
+      {
+        is: [CLOSED],
+        description: "You cannot see much inside as it is closed.",
+      },
+      {
+        has: [CORD],
+        description: "You see a cord on it.",
+      },
+      {
+        description: "It's empty",
+      },
+    ],
+    location: EAST,
+  },
+  [CORD]: {
+    synonyms: [CORD],
+    canPickUp: true,
+    location: STOVE,
+  },
 
   [ROPE]: {
-    synonyms: [ROPE, STRING],
+    synonyms: [ROPE, "string"],
     canPickUp: false,
     cannotPickUpReason: "Frankly, it's a bit too traumatic to pick up.",
     location: FLOOR,
@@ -125,6 +212,7 @@ const ITEMS: Record<string, InventoryItem> = {
     canPickUp: false,
     cannotPickUpReason: "It's attached to the wall.",
     location: WEST,
+    canBreak: [HAMMER],
   },
   [FURNITURE]: {
     synonyms: [FURNITURE],
@@ -162,7 +250,7 @@ const ITEMS: Record<string, InventoryItem> = {
   [OPENER]: {
     synonyms: [OPENER, "canopener", "can opener"],
     canPickUp: true,
-    location: PILLOW,
+    location: COUCH,
   },
   [PLIERS]: { synonyms: [PLIERS], canPickUp: true, location: TOOLBOX },
   [HAMMER]: { synonyms: [HAMMER], canPickUp: true, location: TOOLBOX },
