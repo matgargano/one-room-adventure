@@ -223,7 +223,8 @@ export default class TextAdventureParser {
     this.preflightCheckResult = this.preflightCheck();
     if (!this.verb || !this.directObject) {
       return {
-        message: "UNKNOWN ERROR 1006",
+        message:
+          "Try entering imperative commands such as 'look north' or 'take stove.'",
       };
     }
     if (!this.preflightCheckResult.canContinue) {
