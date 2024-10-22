@@ -36,7 +36,6 @@ export const inventorySlice = createSlice({
       state: { items: Record<string, InventoryItem> },
       action: PayloadAction<{ item: string; value: boolean }>
     ) => {
-      debugger;
       state.items[action.payload.item].isOpen = action.payload.value;
     },
 
