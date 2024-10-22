@@ -25,5 +25,15 @@ export default {
         /^bg-(blue|red|yellow|orange|green)-(50|100|200|300|400|500|600|700|800|900)$/,
     },
   ],
-  plugins: [],
+  plugins: [
+    function ({ addVariant, theme }) {
+      addVariant("mobile-only", ({ container }) => {
+        const lgBreakpoint = theme("screens.lg");
+        const maxWidth = parseInt(lgBreakpoint) - 1;
+        return container.walkRules((rule) => {
+          rule.selector = `@media (max-width: ${maxWidth}px) { ${rule.selector} }`;
+        });
+      });
+    },
+  ],
 };

@@ -8,8 +8,11 @@ import { addLog } from "./features/log/logSlice";
 import getLastItemsAfterClear from "./utilities/getLastItemsAfterClear";
 import LogItem from "./types/LogItem";
 
+import enterWhite from "./assets/enter-white.svg";
+import { add } from "./features/command/commandSlice.ts";
 function App() {
   const scrollContainerRef = useRef(null);
+  const { commands } = useSelector((state: RootState) => state.command);
 
   const [input, setInput] = useState("");
   const [menuActive] = useState<WindowState>(null);
@@ -24,6 +27,23 @@ function App() {
       (inputRef.current as HTMLInputElement).focus();
     }
   }, []);
+  const handleKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+      e.preventDefault();
+      const currentIndex = commands.findIndex((cmd) => cmd === input);
+      let newIndex;
+      if (e.key === "ArrowUp") {
+        newIndex = currentIndex > 0 ? currentIndex - 1 : commands.length - 1;
+      } else {
+        newIndex = currentIndex < commands.length - 1 ? currentIndex + 1 : 0;
+      }
+      setInput(commands[newIndex] || "");
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInput(e.target.value);
+  };
 
   const location = useSelector((state: RootState) => state.location);
 
@@ -53,7 +73,7 @@ function App() {
     const { message } = parser.parseCommand(input);
 
     dispatch(addLog({ input, message }));
-
+    dispatch(add({ command: input }));
     setInput("");
   };
 
@@ -112,14 +132,25 @@ function App() {
               placeholder="What should I do?"
               ref={inputRef}
               type="text"
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e) => handleInputChange(e)}
+              onKeyUp={(e) => handleKeyUp(e)}
               className="grow bg-transparent pl-2 pr-5"
               value={input}
               name="input"
             />
           </div>
-          <button className="button grow-0" type="submit">
-            Submit
+          <button
+            className="button inline-flex grow-0 items-center justify-center"
+            type="submit"
+          >
+            <div className="hidden lg:inline">Submit</div>
+            <div className="">
+              <img
+                src={enterWhite}
+                alt="arrow"
+                className="block max-h-[24px]"
+              />
+            </div>
           </button>
         </form>
       </div>

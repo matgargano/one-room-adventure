@@ -57,7 +57,7 @@ const Window = () => {
     <div className="fixed inset-0 top-0 z-50 bg-black" onClick={close}>
       <div
         onClick={(e) => e.stopPropagation()}
-        className={`absolute left-1/2 top-1/2 z-10 h-3/4 w-3/4 -translate-x-1/2 -translate-y-1/2 bg-${color} p-10`}
+        className={`absolute left-1/2 top-1/2 z-10 h-[90%] lg:h-3/4 w-full py-10 lg:w-3/4 -translate-x-1/2 -translate-y-1/2 bg-${color} p-10 overflow-scroll`}
       >
         <button
           className="absolute right-[12px] top-[12px] text-2xl leading-none"
@@ -65,7 +65,9 @@ const Window = () => {
         >
           &times;
         </button>
-        <h1 className="text-2xl font-bold underline">{title}</h1>
+        <h1 className="mb-10 text-2xl font-bold underline lg:text-4xl">
+          {title}
+        </h1>
         <>{content}</>
       </div>
     </div>

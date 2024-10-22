@@ -15,9 +15,11 @@ body {
 }
 
 .main-container {
-  @apply text-2xl font-extrabold h-[80vh] overflow-scroll my-20 flex flex-col container border-none outline-none focus:outline-none focus:border-none;
+  @apply lg:text-2xl px-5 lg:px-0 font-extrabold h-[80vh] overflow-scroll my-20 flex flex-col container border-none outline-none focus:outline-none focus:border-none;
 }
-
+p {
+  @apply text-lg lg:leading-[150%] lg:text-2xl;
+}
 .button {
   @apply bg-black px-5 text-main;
 }

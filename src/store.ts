@@ -4,7 +4,7 @@ import locationReducer from "./features/location/locationSlice";
 import informationReducer from "./features/window/windowSlice";
 import logReducer from "./features/log/logSlice";
 import flagReducer from "./features/flag/flagSlice";
-
+import commandReducer from "./features/command/commandSlice.ts";
 export const store = configureStore({
   reducer: {
     inventory: inventoryReducer,
@@ -12,6 +12,7 @@ export const store = configureStore({
     information: informationReducer,
     log: logReducer,
     flag: flagReducer,
+    command: commandReducer,
   },
 });
 
